@@ -1,0 +1,49 @@
+<!doctype html>
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+</head>
+
+<title>Linked Charts Example</title>
+
+<link rel="stylesheet" type="text/css" href="parasol.css">
+
+<script src="./lib/d3.v5.min.js"></script>
+<script src="./parasol.standalone.js"></script>
+
+<body>
+<p>Demonstrates linking multiple charts for connected interactivity. Brush along any axis and watch as linked charts respond accordingly.</p>
+
+<p>
+    <button id="reset_brushes">Reset Brushes</button>
+</p>
+
+
+<div id="plot01" class="parcoords" style="height:200px; width:800px;"></div>
+<div id="plot02" class="parcoords" style="height:200px; width:800px;"></div>
+<div id="plot03" class="parcoords" style="height:200px; width:800px;"></div>
+</body>
+
+<script>
+d3.csv('data/cars.csv').then(function(data) {
+  // all charts linked by default
+  var ps = Parasol(data)('.parcoords')
+            .linked(chartIDs = [0,1]);
+
+  // update charts
+  ps.charts.forEach(
+    (pc) => {
+      pc
+        .hideAxis(['name'])
+        .render()
+        .updateAxes(0)
+    }
+  )
+
+  d3.select('#reset_brushes').on('click', function() {
+    // reset first two plots
+    ps.globalBrushReset([0,1]) // NOTE: Update this
+  });
+
+});
+</script>
