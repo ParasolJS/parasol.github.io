@@ -9,7 +9,7 @@
 <link rel="stylesheet" type="text/css" href="parasol.css">
 
 <script src="./lib/d3.v5.min.js"></script>
-<script src="../dist/parasol.standalone.js"></script>
+<script src="./parasol.standalone.js"></script>
 
 <body>
 <p>Selected data is the collection of brushed and marked data. This example demonstrates dataset refinement using the keepData and removeData functions. Selected solutions can also be downloaded as a csv file for further analysis.</p>
@@ -23,8 +23,8 @@
     <button id="export_data">Export Data</button>
 </p>
 
-<div id="plot01" class="parcoords" style="height:200px; width:800px;"></div>
-<div id="plot02" class="parcoords" style="height:200px; width:800px;"></div>
+<div id="p0" class="parcoords" style="height:200px; width:800px;"></div>
+<div id="p1" class="parcoords" style="height:200px; width:800px;"></div>
 <div id="grid" style="width:100%;height:500px;" class="slickgrid-container"></div>
 </body>
 
@@ -35,15 +35,11 @@ d3.csv('data/cars.csv').then(function(data) {
             .attachGrid({container: '#grid'})
             .linked();
 
-  // ps.charts.forEach(
-  //   (pc) => {
-  //     pc
-  //       .hideAxis(['name'])
-  //       .reorderable()
-  //       .render()
-  //       .updateAxes(0);
-  //   }
-  // )
+  // update charts
+  ps
+    .hideAxes(['name'])
+    .reorderable()
+    .render();
 
   // wire-up buttons
   d3.select('#reset_brushes').on('click', function() {

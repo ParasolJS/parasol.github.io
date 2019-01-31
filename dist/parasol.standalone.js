@@ -82,7 +82,7 @@
       return [min, max];
     }
 
-    function sequence(start, stop, step) {
+    function range(start, stop, step) {
       start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
 
       var i = -1,
@@ -5090,7 +5090,7 @@
     var array$3 = Array.prototype;
 
     var map$2 = array$3.map;
-    var slice$5 = array$3.slice;
+    var slice$6 = array$3.slice;
 
     var implicit = {name: "implicit"};
 
@@ -5099,7 +5099,7 @@
           domain = [],
           unknown = implicit;
 
-      range = range == null ? [] : slice$5.call(range);
+      range = range == null ? [] : slice$6.call(range);
 
       function scale(d) {
         var key = d + "", i = index.get(key);
@@ -5119,7 +5119,7 @@
       };
 
       scale.range = function(_) {
-        return arguments.length ? (range = slice$5.call(_), scale) : range.slice();
+        return arguments.length ? (range = slice$6.call(_), scale) : range.slice();
       };
 
       scale.unknown = function(_) {
@@ -5160,7 +5160,7 @@
         start += (stop - start - step * (n - paddingInner)) * align;
         bandwidth = step * (1 - paddingInner);
         if (round) start = Math.round(start), bandwidth = Math.round(bandwidth);
-        var values = sequence(n).map(function(i) { return start + step * i; });
+        var values = range(n).map(function(i) { return start + step * i; });
         return ordinalRange(reverse ? values.reverse() : values);
       }
 
@@ -5267,15 +5267,15 @@
       };
     }
 
-    function bimap(domain, range, deinterpolate, reinterpolate) {
-      var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
+    function bimap(domain, range$$1, deinterpolate, reinterpolate) {
+      var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
       if (d1 < d0) d0 = deinterpolate(d1, d0), r0 = reinterpolate(r1, r0);
       else d0 = deinterpolate(d0, d1), r0 = reinterpolate(r0, r1);
       return function(x) { return r0(d0(x)); };
     }
 
-    function polymap(domain, range, deinterpolate, reinterpolate) {
-      var j = Math.min(domain.length, range.length) - 1,
+    function polymap(domain, range$$1, deinterpolate, reinterpolate) {
+      var j = Math.min(domain.length, range$$1.length) - 1,
           d = new Array(j),
           r = new Array(j),
           i = -1;
@@ -5283,12 +5283,12 @@
       // Reverse descending domains.
       if (domain[j] < domain[0]) {
         domain = domain.slice().reverse();
-        range = range.slice().reverse();
+        range$$1 = range$$1.slice().reverse();
       }
 
       while (++i < j) {
         d[i] = deinterpolate(domain[i], domain[i + 1]);
-        r[i] = reinterpolate(range[i], range[i + 1]);
+        r[i] = reinterpolate(range$$1[i], range$$1[i + 1]);
       }
 
       return function(x) {
@@ -5309,7 +5309,7 @@
     // reinterpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding domain value x in [a,b].
     function continuous(deinterpolate, reinterpolate) {
       var domain = unit,
-          range = unit,
+          range$$1 = unit,
           interpolate$$1 = interpolateValue,
           clamp = false,
           piecewise$$1,
@@ -5317,17 +5317,17 @@
           input;
 
       function rescale() {
-        piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
+        piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
         output = input = null;
         return scale;
       }
 
       function scale(x) {
-        return (output || (output = piecewise$$1(domain, range, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
+        return (output || (output = piecewise$$1(domain, range$$1, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
       }
 
       scale.invert = function(y) {
-        return (input || (input = piecewise$$1(range, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
+        return (input || (input = piecewise$$1(range$$1, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
       };
 
       scale.domain = function(_) {
@@ -5335,11 +5335,11 @@
       };
 
       scale.range = function(_) {
-        return arguments.length ? (range = slice$5.call(_), rescale()) : range.slice();
+        return arguments.length ? (range$$1 = slice$6.call(_), rescale()) : range$$1.slice();
       };
 
       scale.rangeRound = function(_) {
-        return range = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
+        return range$$1 = slice$6.call(_), interpolate$$1 = interpolateRound, rescale();
       };
 
       scale.clamp = function(_) {
@@ -5630,6 +5630,8 @@
     var saturday = weekday(6);
 
     var sundays = sunday.range;
+    var mondays = monday.range;
+    var thursdays = thursday.range;
 
     var month = newInterval(function(date) {
       date.setDate(1);
@@ -5719,6 +5721,8 @@
     var utcSaturday = utcWeekday(6);
 
     var utcSundays = utcSunday.range;
+    var utcMondays = utcMonday.range;
+    var utcThursdays = utcThursday.range;
 
     var utcMonth = newInterval(function(date) {
       date.setUTCDate(1);
@@ -7479,6 +7483,28 @@
       return config.width - config.margin.right - config.margin.left;
     };
 
+    var invertCategorical = function invertCategorical(selection$$1, scale) {
+      if (selection$$1.length === 0) {
+        return [];
+      }
+      var domain = scale.domain();
+      var range$$1 = scale.range();
+      var found = [];
+      range$$1.forEach(function (d, i) {
+        if (d >= selection$$1[0] && d <= selection$$1[1]) {
+          found.push(domain[i]);
+        }
+      });
+      return found;
+    };
+
+    var invertByScale = function invertByScale(selection$$1, scale) {
+      if (scale === null) return [];
+      return typeof scale.invert === 'undefined' ? invertCategorical(selection$$1, scale) : selection$$1.map(function (d) {
+        return scale.invert(d);
+      });
+    };
+
     var brushExtents = function brushExtents(state, config, pc) {
       return function (extents) {
         var brushes = state.brushes,
@@ -7490,7 +7516,17 @@
             var brush$$1 = brushes[cur];
             //todo: brush check
             if (brush$$1 !== undefined && brushSelection(brushNodes[cur]) !== null) {
-              acc[cur] = brush$$1.extent();
+              var raw = brushSelection(brushNodes[cur]);
+              var yScale = config.dimensions[cur].yscale;
+              var scaled = invertByScale(raw, yScale);
+
+              acc[cur] = {
+                extent: brush$$1.extent(),
+                selection: {
+                  raw: raw,
+                  scaled: scaled
+                }
+              };
             }
 
             return acc;
@@ -7515,7 +7551,10 @@
 
               //update the extent
               //sets the brushable extent to the specified array of points [[x0, y0], [x1, y1]]
-              brush$$1.extent([[-15, yExtent[1]], [15, yExtent[0]]]);
+              //we actually don't need this since we are using brush.move below
+              //extents set the limits of the brush which means a user will not be able
+              //to move or drag the brush beyond the limits set by brush.extent
+              //brush.extent([[-15, yExtent[1]], [15, yExtent[0]]]);
 
               //redraw the brush
               //https://github.com/d3/d3-brush#brush_move
@@ -7646,46 +7685,36 @@
 
     var brushFor = function brushFor(state, config, pc, events, brushGroup) {
       return function (axis, _selector) {
+        // handle hidden axes which will not be a property of dimensions
+        if (!config.dimensions.hasOwnProperty(axis)) {
+          return function () {};
+        }
+
         var brushRangeMax = config.dimensions[axis].type === 'string' ? config.dimensions[axis].yscale.range()[config.dimensions[axis].yscale.range().length - 1] : config.dimensions[axis].yscale.range()[0];
 
         var _brush = brushY(_selector).extent([[-15, 0], [15, brushRangeMax]]);
 
-        var invertCategorical = function invertCategorical(selection$$1, yscale) {
-          if (selection$$1.length === 0) {
-            return [];
-          }
-          var domain = yscale.domain();
-          var range = yscale.range();
-          var found = [];
-          range.forEach(function (d, i) {
-            if (d >= selection$$1[0] && d <= selection$$1[1]) {
-              found.push(domain[i]);
-            }
-          });
-          return found;
-        };
-
         var convertBrushArguments = function convertBrushArguments(args) {
           var args_array = Array.prototype.slice.call(args);
           var axis = args_array[0];
-          var selection_raw = brushSelection(args_array[2][0]) || [];
-          // ordinal scales do not have invert
-          var selection_scaled = [];
-          var yscale = config.dimensions[axis].yscale;
-          if (typeof yscale.invert === 'undefined') {
-            selection_scaled = invertCategorical(selection_raw, yscale);
-          } else {
-            selection_scaled = selection_raw.map(function (d) {
-              return config.dimensions[axis].yscale.invert(d);
-            });
+
+          var raw = brushSelection(args_array[2][0]) || [];
+
+          // handle hidden axes which will not have a yscale
+          var yscale = null;
+          if (config.dimensions.hasOwnProperty(axis)) {
+            yscale = config.dimensions[axis].yscale;
           }
+
+          // ordinal scales do not have invert
+          var scaled = invertByScale(raw, yscale);
 
           return {
             axis: args_array[0],
             node: args_array[2][0],
             selection: {
-              raw: selection_raw,
-              scaled: selection_scaled
+              raw: raw,
+              scaled: scaled
             }
           };
         };
@@ -8121,9 +8150,9 @@
               acc[cur] = [];
             } else {
               acc[cur] = axisBrushes.reduce(function (d, p, i) {
-                var range = brushSelection(document.getElementById('brush-' + pos + '-' + i));
-                if (range !== null) {
-                  d = d.push(range);
+                var range$$1 = brushSelection(document.getElementById('brush-' + pos + '-' + i));
+                if (range$$1 !== null) {
+                  d = d.push(range$$1);
                 }
 
                 return d;
@@ -9267,7 +9296,11 @@
       return function (dimension) {
         pc.flip(dimension);
         pc.brushReset(dimension);
-        select(this.parentElement).transition().duration(config.animationTime).call(axis.scale(config.dimensions[dimension].yscale));
+
+        // select(this.parentElement)
+        pc.selection.select('svg').selectAll('g.axis').filter(function (d) {
+          return d === dimension;
+        }).transition().duration(config.animationTime).call(axis.scale(config.dimensions[dimension].yscale));
         pc.render();
       };
     };
@@ -9430,7 +9463,9 @@
         });
 
         // xscale
-        xscale.range([0, w(config)], 1);
+        // add padding for d3 >= v4 default 0.2
+        xscale.range([0, w(config)]).padding(0.2);
+
         // Retina display, etc.
         var devicePixelRatio = window.devicePixelRatio || 1;
 
@@ -9568,6 +9603,30 @@
         });
       };
     };
+
+    var classCallCheck = function (instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+      }
+    };
+
+    var createClass = function () {
+      function defineProperties(target, props) {
+        for (var i = 0; i < props.length; i++) {
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+          if ("value" in descriptor) descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+        }
+      }
+
+      return function (Constructor, protoProps, staticProps) {
+        if (protoProps) defineProperties(Constructor.prototype, protoProps);
+        if (staticProps) defineProperties(Constructor, staticProps);
+        return Constructor;
+      };
+    }();
 
     var _extends = Object.assign || function (target) {
       for (var i = 1; i < arguments.length; i++) {
@@ -9856,6 +9915,1111 @@
       };
     };
 
+    var PRECISION = 1e-6;
+
+    var Matrix = function () {
+        function Matrix(elements) {
+            classCallCheck(this, Matrix);
+
+            this.setElements(elements);
+        }
+
+        createClass(Matrix, [{
+            key: "e",
+            value: function e(i, j) {
+                if (i < 1 || i > this.elements.length || j < 1 || j > this.elements[0].length) {
+                    return null;
+                }
+                return this.elements[i - 1][j - 1];
+            }
+        }, {
+            key: "row",
+            value: function row(i) {
+                if (i > this.elements.length) {
+                    return null;
+                }
+                return new Vector(this.elements[i - 1]);
+            }
+        }, {
+            key: "col",
+            value: function col(j) {
+                if (this.elements.length === 0) {
+                    return null;
+                }
+                if (j > this.elements[0].length) {
+                    return null;
+                }
+                var col = [],
+                    n = this.elements.length;
+                for (var i = 0; i < n; i++) {
+                    col.push(this.elements[i][j - 1]);
+                }
+                return new Vector(col);
+            }
+        }, {
+            key: "dimensions",
+            value: function dimensions() {
+                var cols = this.elements.length === 0 ? 0 : this.elements[0].length;
+                return { rows: this.elements.length, cols: cols };
+            }
+        }, {
+            key: "rows",
+            value: function rows() {
+                return this.elements.length;
+            }
+        }, {
+            key: "cols",
+            value: function cols() {
+                if (this.elements.length === 0) {
+                    return 0;
+                }
+                return this.elements[0].length;
+            }
+        }, {
+            key: "eql",
+            value: function eql(matrix) {
+                var M = matrix.elements || matrix;
+                if (!M[0] || typeof M[0][0] === 'undefined') {
+                    M = new Matrix(M).elements;
+                }
+                if (this.elements.length === 0 || M.length === 0) {
+                    return this.elements.length === M.length;
+                }
+                if (this.elements.length !== M.length) {
+                    return false;
+                }
+                if (this.elements[0].length !== M[0].length) {
+                    return false;
+                }
+                var i = this.elements.length,
+                    nj = this.elements[0].length,
+                    j;
+                while (i--) {
+                    j = nj;
+                    while (j--) {
+                        if (Math.abs(this.elements[i][j] - M[i][j]) > PRECISION) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }, {
+            key: "dup",
+            value: function dup() {
+                return new Matrix(this.elements);
+            }
+        }, {
+            key: "map",
+            value: function map(fn, context) {
+                if (this.elements.length === 0) {
+                    return new Matrix([]);
+                }
+                var els = [],
+                    i = this.elements.length,
+                    nj = this.elements[0].length,
+                    j;
+                while (i--) {
+                    j = nj;
+                    els[i] = [];
+                    while (j--) {
+                        els[i][j] = fn.call(context, this.elements[i][j], i + 1, j + 1);
+                    }
+                }
+                return new Matrix(els);
+            }
+        }, {
+            key: "isSameSizeAs",
+            value: function isSameSizeAs(matrix) {
+                var M = matrix.elements || matrix;
+                if (typeof M[0][0] === 'undefined') {
+                    M = new Matrix(M).elements;
+                }
+                if (this.elements.length === 0) {
+                    return M.length === 0;
+                }
+                return this.elements.length === M.length && this.elements[0].length === M[0].length;
+            }
+        }, {
+            key: "add",
+            value: function add(matrix) {
+                if (this.elements.length === 0) {
+                    return this.map(function (x) {
+                        return x;
+                    });
+                }
+                var M = matrix.elements || matrix;
+                if (typeof M[0][0] === 'undefined') {
+                    M = new Matrix(M).elements;
+                }
+                if (!this.isSameSizeAs(M)) {
+                    return null;
+                }
+                return this.map(function (x, i, j) {
+                    return x + M[i - 1][j - 1];
+                });
+            }
+        }, {
+            key: "subtract",
+            value: function subtract(matrix) {
+                if (this.elements.length === 0) {
+                    return this.map(function (x) {
+                        return x;
+                    });
+                }
+                var M = matrix.elements || matrix;
+                if (typeof M[0][0] === 'undefined') {
+                    M = new Matrix(M).elements;
+                }
+                if (!this.isSameSizeAs(M)) {
+                    return null;
+                }
+                return this.map(function (x, i, j) {
+                    return x - M[i - 1][j - 1];
+                });
+            }
+        }, {
+            key: "canMultiplyFromLeft",
+            value: function canMultiplyFromLeft(matrix) {
+                if (this.elements.length === 0) {
+                    return false;
+                }
+                var M = matrix.elements || matrix;
+                if (typeof M[0][0] === 'undefined') {
+                    M = new Matrix(M).elements;
+                }
+                // this.columns should equal matrix.rows
+                return this.elements[0].length === M.length;
+            }
+        }, {
+            key: "multiply",
+            value: function multiply(matrix) {
+                if (this.elements.length === 0) {
+                    return null;
+                }
+                if (!matrix.elements) {
+                    return this.map(function (x) {
+                        return x * matrix;
+                    });
+                }
+                var returnVector = matrix.modulus ? true : false;
+                var M = matrix.elements || matrix;
+                if (typeof M[0][0] === 'undefined') {
+                    M = new Matrix(M).elements;
+                }
+                if (!this.canMultiplyFromLeft(M)) {
+                    return null;
+                }
+                var i = this.elements.length,
+                    nj = M[0].length,
+                    j;
+                var cols = this.elements[0].length,
+                    c,
+                    elements = [],
+                    sum$$1;
+                while (i--) {
+                    j = nj;
+                    elements[i] = [];
+                    while (j--) {
+                        c = cols;
+                        sum$$1 = 0;
+                        while (c--) {
+                            sum$$1 += this.elements[i][c] * M[c][j];
+                        }
+                        elements[i][j] = sum$$1;
+                    }
+                }
+                var M = new Matrix(elements);
+                return returnVector ? M.col(1) : M;
+            }
+        }, {
+            key: "minor",
+            value: function minor(a, b, c, d) {
+                if (this.elements.length === 0) {
+                    return null;
+                }
+                var elements = [],
+                    ni = c,
+                    i,
+                    nj,
+                    j;
+                var rows = this.elements.length,
+                    cols = this.elements[0].length;
+                while (ni--) {
+                    i = c - ni - 1;
+                    elements[i] = [];
+                    nj = d;
+                    while (nj--) {
+                        j = d - nj - 1;
+                        elements[i][j] = this.elements[(a + i - 1) % rows][(b + j - 1) % cols];
+                    }
+                }
+                return new Matrix(elements);
+            }
+        }, {
+            key: "transpose",
+            value: function transpose$$1() {
+                if (this.elements.length === 0) {
+                    return new Matrix([]);
+                }
+                var rows = this.elements.length,
+                    i,
+                    cols = this.elements[0].length,
+                    j;
+                var elements = [],
+                    i = cols;
+                while (i--) {
+                    j = rows;
+                    elements[i] = [];
+                    while (j--) {
+                        elements[i][j] = this.elements[j][i];
+                    }
+                }
+                return new Matrix(elements);
+            }
+        }, {
+            key: "isSquare",
+            value: function isSquare() {
+                var cols = this.elements.length === 0 ? 0 : this.elements[0].length;
+                return this.elements.length === cols;
+            }
+        }, {
+            key: "max",
+            value: function max$$1() {
+                if (this.elements.length === 0) {
+                    return null;
+                }
+                var m = 0,
+                    i = this.elements.length,
+                    nj = this.elements[0].length,
+                    j;
+                while (i--) {
+                    j = nj;
+                    while (j--) {
+                        if (Math.abs(this.elements[i][j]) > Math.abs(m)) {
+                            m = this.elements[i][j];
+                        }
+                    }
+                }
+                return m;
+            }
+        }, {
+            key: "indexOf",
+            value: function indexOf(x) {
+                if (this.elements.length === 0) {
+                    return null;
+                }
+                var ni = this.elements.length,
+                    i,
+                    nj = this.elements[0].length,
+                    j;
+                for (i = 0; i < ni; i++) {
+                    for (j = 0; j < nj; j++) {
+                        if (this.elements[i][j] === x) {
+                            return {
+                                i: i + 1,
+                                j: j + 1
+                            };
+                        }
+                    }
+                }
+                return null;
+            }
+        }, {
+            key: "diagonal",
+            value: function diagonal() {
+                if (!this.isSquare) {
+                    return null;
+                }
+                var els = [],
+                    n = this.elements.length;
+                for (var i = 0; i < n; i++) {
+                    els.push(this.elements[i][i]);
+                }
+                return new Vector(els);
+            }
+        }, {
+            key: "toRightTriangular",
+            value: function toRightTriangular() {
+                if (this.elements.length === 0) {
+                    return new Matrix([]);
+                }
+                var M = this.dup(),
+                    els;
+                var n = this.elements.length,
+                    i,
+                    j,
+                    np = this.elements[0].length,
+                    p;
+                for (i = 0; i < n; i++) {
+                    if (M.elements[i][i] === 0) {
+                        for (j = i + 1; j < n; j++) {
+                            if (M.elements[j][i] !== 0) {
+                                els = [];
+                                for (p = 0; p < np; p++) {
+                                    els.push(M.elements[i][p] + M.elements[j][p]);
+                                }
+                                M.elements[i] = els;
+                                break;
+                            }
+                        }
+                    }
+                    if (M.elements[i][i] !== 0) {
+                        for (j = i + 1; j < n; j++) {
+                            var multiplier = M.elements[j][i] / M.elements[i][i];
+                            els = [];
+                            for (p = 0; p < np; p++) {
+                                // Elements with column numbers up to an including the number of the
+                                // row that we're subtracting can safely be set straight to zero,
+                                // since that's the point of this routine and it avoids having to
+                                // loop over and correct rounding errors later
+                                els.push(p <= i ? 0 : M.elements[j][p] - M.elements[i][p] * multiplier);
+                            }
+                            M.elements[j] = els;
+                        }
+                    }
+                }
+                return M;
+            }
+        }, {
+            key: "determinant",
+            value: function determinant() {
+                if (this.elements.length === 0) {
+                    return 1;
+                }
+                if (!this.isSquare()) {
+                    return null;
+                }
+                var M = this.toRightTriangular();
+                var det = M.elements[0][0],
+                    n = M.elements.length;
+                for (var i = 1; i < n; i++) {
+                    det = det * M.elements[i][i];
+                }
+                return det;
+            }
+        }, {
+            key: "isSingular",
+            value: function isSingular() {
+                return this.isSquare() && this.determinant() === 0;
+            }
+        }, {
+            key: "trace",
+            value: function trace() {
+                if (this.elements.length === 0) {
+                    return 0;
+                }
+                if (!this.isSquare()) {
+                    return null;
+                }
+                var tr = this.elements[0][0],
+                    n = this.elements.length;
+                for (var i = 1; i < n; i++) {
+                    tr += this.elements[i][i];
+                }
+                return tr;
+            }
+        }, {
+            key: "rank",
+            value: function rank() {
+                if (this.elements.length === 0) {
+                    return 0;
+                }
+                var M = this.toRightTriangular(),
+                    rank = 0;
+                var i = this.elements.length,
+                    nj = this.elements[0].length,
+                    j;
+                while (i--) {
+                    j = nj;
+                    while (j--) {
+                        if (Math.abs(M.elements[i][j]) > PRECISION) {
+                            rank++;
+                            break;
+                        }
+                    }
+                }
+                return rank;
+            }
+        }, {
+            key: "augment",
+            value: function augment(matrix) {
+                if (this.elements.length === 0) {
+                    return this.dup();
+                }
+                var M = matrix.elements || matrix;
+                if (typeof M[0][0] === 'undefined') {
+                    M = new Matrix(M).elements;
+                }
+                var T = this.dup(),
+                    cols = T.elements[0].length;
+                var i = T.elements.length,
+                    nj = M[0].length,
+                    j;
+                if (i !== M.length) {
+                    return null;
+                }
+                while (i--) {
+                    j = nj;
+                    while (j--) {
+                        T.elements[i][cols + j] = M[i][j];
+                    }
+                }
+                return T;
+            }
+        }, {
+            key: "inverse",
+            value: function inverse() {
+                if (this.elements.length === 0) {
+                    return null;
+                }
+                if (!this.isSquare() || this.isSingular()) {
+                    return null;
+                }
+                var n = this.elements.length,
+                    i = n,
+                    j;
+                var M = this.augment(Matrix.I(n)).toRightTriangular();
+                var np = M.elements[0].length,
+                    p,
+                    els,
+                    divisor;
+                var inverse_elements = [],
+                    new_element;
+                // Matrix is non-singular so there will be no zeros on the
+                // diagonal. Cycle through rows from last to first.
+                while (i--) {
+                    // First, normalise diagonal elements to 1
+                    els = [];
+                    inverse_elements[i] = [];
+                    divisor = M.elements[i][i];
+                    for (p = 0; p < np; p++) {
+                        new_element = M.elements[i][p] / divisor;
+                        els.push(new_element);
+                        // Shuffle off the current row of the right hand side into the results
+                        // array as it will not be modified by later runs through this loop
+                        if (p >= n) {
+                            inverse_elements[i].push(new_element);
+                        }
+                    }
+                    M.elements[i] = els;
+                    // Then, subtract this row from those above it to give the identity matrix
+                    // on the left hand side
+                    j = i;
+                    while (j--) {
+                        els = [];
+                        for (p = 0; p < np; p++) {
+                            els.push(M.elements[j][p] - M.elements[i][p] * M.elements[j][i]);
+                        }
+                        M.elements[j] = els;
+                    }
+                }
+                return new Matrix(inverse_elements);
+            }
+        }, {
+            key: "round",
+            value: function round() {
+                return this.map(function (x) {
+                    return Math.round(x);
+                });
+            }
+        }, {
+            key: "snapTo",
+            value: function snapTo(x) {
+                return this.map(function (p) {
+                    return Math.abs(p - x) <= PRECISION ? x : p;
+                });
+            }
+        }, {
+            key: "inspect",
+            value: function inspect() {
+                var matrix_rows = [];
+                var n = this.elements.length;
+                if (n === 0) return '[]';
+                for (var i = 0; i < n; i++) {
+                    matrix_rows.push(new Vector(this.elements[i]).inspect());
+                }
+                return matrix_rows.join('\n');
+            }
+        }, {
+            key: "setElements",
+            value: function setElements(els) {
+                var i,
+                    j,
+                    elements = els.elements || els;
+                if (elements[0] && typeof elements[0][0] !== 'undefined') {
+                    i = elements.length;
+                    this.elements = [];
+                    while (i--) {
+                        j = elements[i].length;
+                        this.elements[i] = [];
+                        while (j--) {
+                            this.elements[i][j] = elements[i][j];
+                        }
+                    }
+                    return this;
+                }
+                var n = elements.length;
+                this.elements = [];
+                for (i = 0; i < n; i++) {
+                    this.elements.push([elements[i]]);
+                }
+                return this;
+            }
+
+            //From glUtils.js
+
+        }, {
+            key: "flatten",
+            value: function flatten() {
+                var result = [];
+                if (this.elements.length == 0) {
+                    return [];
+                }
+
+                for (var j = 0; j < this.elements[0].length; j++) {
+                    for (var i = 0; i < this.elements.length; i++) {
+                        result.push(this.elements[i][j]);
+                    }
+                }
+                return result;
+            }
+
+            //From glUtils.js
+
+        }, {
+            key: "ensure4x4",
+            value: function ensure4x4() {
+                if (this.elements.length == 4 && this.elements[0].length == 4) {
+                    return this;
+                }
+
+                if (this.elements.length > 4 || this.elements[0].length > 4) {
+                    return null;
+                }
+
+                for (var i = 0; i < this.elements.length; i++) {
+                    for (var j = this.elements[i].length; j < 4; j++) {
+                        if (i == j) {
+                            this.elements[i].push(1);
+                        } else {
+                            this.elements[i].push(0);
+                        }
+                    }
+                }
+
+                for (var i = this.elements.length; i < 4; i++) {
+                    if (i == 0) {
+                        this.elements.push([1, 0, 0, 0]);
+                    } else if (i == 1) {
+                        this.elements.push([0, 1, 0, 0]);
+                    } else if (i == 2) {
+                        this.elements.push([0, 0, 1, 0]);
+                    } else if (i == 3) {
+                        this.elements.push([0, 0, 0, 1]);
+                    }
+                }
+
+                return this;
+            }
+
+            //From glUtils.js
+
+        }, {
+            key: "make3x3",
+            value: function make3x3() {
+                if (this.elements.length != 4 || this.elements[0].length != 4) {
+                    return null;
+                }
+
+                return new Matrix([[this.elements[0][0], this.elements[0][1], this.elements[0][2]], [this.elements[1][0], this.elements[1][1], this.elements[1][2]], [this.elements[2][0], this.elements[2][1], this.elements[2][2]]]);
+            }
+        }]);
+        return Matrix;
+    }();
+
+    Matrix.I = function (n) {
+        var els = [],
+            i = n,
+            j;
+        while (i--) {
+            j = n;
+            els[i] = [];
+            while (j--) {
+                els[i][j] = i === j ? 1 : 0;
+            }
+        }
+        return new Matrix(els);
+    };
+
+    Matrix.Diagonal = function (elements) {
+        var i = elements.length;
+        var M = Matrix.I(i);
+        while (i--) {
+            M.elements[i][i] = elements[i];
+        }
+        return M;
+    };
+
+    Matrix.Rotation = function (theta, a) {
+        if (!a) {
+            return new Matrix([[Math.cos(theta), -Math.sin(theta)], [Math.sin(theta), Math.cos(theta)]]);
+        }
+        var axis = a.dup();
+        if (axis.elements.length !== 3) {
+            return null;
+        }
+        var mod = axis.modulus();
+        var x = axis.elements[0] / mod,
+            y = axis.elements[1] / mod,
+            z = axis.elements[2] / mod;
+        var s = Math.sin(theta),
+            c = Math.cos(theta),
+            t = 1 - c;
+        // Formula derived here: http://www.gamedev.net/reference/articles/article1199.asp
+        // That proof rotates the co-ordinate system so theta becomes -theta and sin
+        // becomes -sin here.
+        return new Matrix([[t * x * x + c, t * x * y - s * z, t * x * z + s * y], [t * x * y + s * z, t * y * y + c, t * y * z - s * x], [t * x * z - s * y, t * y * z + s * x, t * z * z + c]]);
+    };
+
+    Matrix.RotationX = function (t) {
+        var c = Math.cos(t),
+            s = Math.sin(t);
+        return new Matrix([[1, 0, 0], [0, c, -s], [0, s, c]]);
+    };
+    Matrix.RotationY = function (t) {
+        var c = Math.cos(t),
+            s = Math.sin(t);
+        return new Matrix([[c, 0, s], [0, 1, 0], [-s, 0, c]]);
+    };
+    Matrix.RotationZ = function (t) {
+        var c = Math.cos(t),
+            s = Math.sin(t);
+        return new Matrix([[c, -s, 0], [s, c, 0], [0, 0, 1]]);
+    };
+
+    Matrix.Random = function (n, m) {
+        return Matrix.Zero(n, m).map(function () {
+            return Math.random();
+        });
+    };
+
+    //From glUtils.js
+    Matrix.Translation = function (v) {
+        if (v.elements.length == 2) {
+            var r = Matrix.I(3);
+            r.elements[2][0] = v.elements[0];
+            r.elements[2][1] = v.elements[1];
+            return r;
+        }
+
+        if (v.elements.length == 3) {
+            var r = Matrix.I(4);
+            r.elements[0][3] = v.elements[0];
+            r.elements[1][3] = v.elements[1];
+            r.elements[2][3] = v.elements[2];
+            return r;
+        }
+
+        throw "Invalid length for Translation";
+    };
+
+    Matrix.Zero = function (n, m) {
+        var els = [],
+            i = n,
+            j;
+        while (i--) {
+            j = m;
+            els[i] = [];
+            while (j--) {
+                els[i][j] = 0;
+            }
+        }
+        return new Matrix(els);
+    };
+
+    Matrix.prototype.toUpperTriangular = Matrix.prototype.toRightTriangular;
+    Matrix.prototype.det = Matrix.prototype.determinant;
+    Matrix.prototype.tr = Matrix.prototype.trace;
+    Matrix.prototype.rk = Matrix.prototype.rank;
+    Matrix.prototype.inv = Matrix.prototype.inverse;
+    Matrix.prototype.x = Matrix.prototype.multiply;
+
+    var Vector = function () {
+        function Vector(elements) {
+            classCallCheck(this, Vector);
+
+            this.setElements(elements);
+        }
+
+        createClass(Vector, [{
+            key: "e",
+            value: function e(i) {
+                return i < 1 || i > this.elements.length ? null : this.elements[i - 1];
+            }
+        }, {
+            key: "dimensions",
+            value: function dimensions() {
+                return this.elements.length;
+            }
+        }, {
+            key: "modulus",
+            value: function modulus() {
+                return Math.sqrt(this.dot(this));
+            }
+        }, {
+            key: "eql",
+            value: function eql(vector) {
+                var n = this.elements.length;
+                var V = vector.elements || vector;
+                if (n !== V.length) {
+                    return false;
+                }
+                while (n--) {
+                    if (Math.abs(this.elements[n] - V[n]) > PRECISION) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }, {
+            key: "dup",
+            value: function dup() {
+                return new Vector(this.elements);
+            }
+        }, {
+            key: "map",
+            value: function map(fn, context) {
+                var elements = [];
+                this.each(function (x, i) {
+                    elements.push(fn.call(context, x, i));
+                });
+                return new Vector(elements);
+            }
+        }, {
+            key: "forEach",
+            value: function forEach(fn, context) {
+                var n = this.elements.length;
+                for (var i = 0; i < n; i++) {
+                    fn.call(context, this.elements[i], i + 1);
+                }
+            }
+        }, {
+            key: "toUnitVector",
+            value: function toUnitVector() {
+                var r = this.modulus();
+                if (r === 0) {
+                    return this.dup();
+                }
+                return this.map(function (x) {
+                    return x / r;
+                });
+            }
+        }, {
+            key: "angleFrom",
+            value: function angleFrom(vector) {
+                var V = vector.elements || vector;
+                var n = this.elements.length;
+                if (n !== V.length) {
+                    return null;
+                }
+                var dot = 0,
+                    mod1 = 0,
+                    mod2 = 0;
+                // Work things out in parallel to save time
+                this.each(function (x, i) {
+                    dot += x * V[i - 1];
+                    mod1 += x * x;
+                    mod2 += V[i - 1] * V[i - 1];
+                });
+                mod1 = Math.sqrt(mod1);mod2 = Math.sqrt(mod2);
+                if (mod1 * mod2 === 0) {
+                    return null;
+                }
+                var theta = dot / (mod1 * mod2);
+                if (theta < -1) {
+                    theta = -1;
+                }
+                if (theta > 1) {
+                    theta = 1;
+                }
+                return Math.acos(theta);
+            }
+        }, {
+            key: "isParallelTo",
+            value: function isParallelTo(vector) {
+                var angle = this.angleFrom(vector);
+                return angle === null ? null : angle <= PRECISION;
+            }
+        }, {
+            key: "isAntiparallelTo",
+            value: function isAntiparallelTo(vector) {
+                var angle = this.angleFrom(vector);
+                return angle === null ? null : Math.abs(angle - Math.PI) <= PRECISION;
+            }
+        }, {
+            key: "isPerpendicularTo",
+            value: function isPerpendicularTo(vector) {
+                var dot = this.dot(vector);
+                return dot === null ? null : Math.abs(dot) <= PRECISION;
+            }
+        }, {
+            key: "add",
+            value: function add(vector) {
+                var V = vector.elements || vector;
+                if (this.elements.length !== V.length) {
+                    return null;
+                }
+                return this.map(function (x, i) {
+                    return x + V[i - 1];
+                });
+            }
+        }, {
+            key: "subtract",
+            value: function subtract(vector) {
+                var V = vector.elements || vector;
+                if (this.elements.length !== V.length) {
+                    return null;
+                }
+                return this.map(function (x, i) {
+                    return x - V[i - 1];
+                });
+            }
+        }, {
+            key: "multiply",
+            value: function multiply(k) {
+                return this.map(function (x) {
+                    return x * k;
+                });
+            }
+        }, {
+            key: "dot",
+            value: function dot(vector) {
+                var V = vector.elements || vector;
+                var product = 0,
+                    n = this.elements.length;
+                if (n !== V.length) {
+                    return null;
+                }
+                while (n--) {
+                    product += this.elements[n] * V[n];
+                }
+                return product;
+            }
+        }, {
+            key: "cross",
+            value: function cross$$1(vector) {
+                var B = vector.elements || vector;
+                if (this.elements.length !== 3 || B.length !== 3) {
+                    return null;
+                }
+                var A = this.elements;
+                return new Vector([A[1] * B[2] - A[2] * B[1], A[2] * B[0] - A[0] * B[2], A[0] * B[1] - A[1] * B[0]]);
+            }
+        }, {
+            key: "max",
+            value: function max$$1() {
+                var m = 0,
+                    i = this.elements.length;
+                while (i--) {
+                    if (Math.abs(this.elements[i]) > Math.abs(m)) {
+                        m = this.elements[i];
+                    }
+                }
+                return m;
+            }
+        }, {
+            key: "indexOf",
+            value: function indexOf(x) {
+                var index = null,
+                    n = this.elements.length;
+                for (var i = 0; i < n; i++) {
+                    if (index === null && this.elements[i] === x) {
+                        index = i + 1;
+                    }
+                }
+                return index;
+            }
+        }, {
+            key: "toDiagonalMatrix",
+            value: function toDiagonalMatrix() {
+                return Matrix.Diagonal(this.elements);
+            }
+        }, {
+            key: "round",
+            value: function round() {
+                return this.map(function (x) {
+                    return Math.round(x);
+                });
+            }
+        }, {
+            key: "snapTo",
+            value: function snapTo(x) {
+                return this.map(function (y) {
+                    return Math.abs(y - x) <= PRECISION ? x : y;
+                });
+            }
+        }, {
+            key: "distanceFrom",
+            value: function distanceFrom(obj) {
+                if (obj.anchor || obj.start && obj.end) {
+                    return obj.distanceFrom(this);
+                }
+                var V = obj.elements || obj;
+                if (V.length !== this.elements.length) {
+                    return null;
+                }
+                var sum$$1 = 0,
+                    part;
+                this.each(function (x, i) {
+                    part = x - V[i - 1];
+                    sum$$1 += part * part;
+                });
+                return Math.sqrt(sum$$1);
+            }
+        }, {
+            key: "liesOn",
+            value: function liesOn(line$$1) {
+                return line$$1.contains(this);
+            }
+        }, {
+            key: "liesIn",
+            value: function liesIn(plane) {
+                return plane.contains(this);
+            }
+        }, {
+            key: "rotate",
+            value: function rotate(t, obj) {
+                var V,
+                    R = null,
+                    x,
+                    y,
+                    z;
+                if (t.determinant) {
+                    R = t.elements;
+                }
+                switch (this.elements.length) {
+                    case 2:
+                        {
+                            V = obj.elements || obj;
+                            if (V.length !== 2) {
+                                return null;
+                            }
+                            if (!R) {
+                                R = Matrix.Rotation(t).elements;
+                            }
+                            x = this.elements[0] - V[0];
+                            y = this.elements[1] - V[1];
+                            return new Vector([V[0] + R[0][0] * x + R[0][1] * y, V[1] + R[1][0] * x + R[1][1] * y]);
+                            break;
+                        }
+                    case 3:
+                        {
+                            if (!obj.direction) {
+                                return null;
+                            }
+                            var C = obj.pointClosestTo(this).elements;
+                            if (!R) {
+                                R = Matrix.Rotation(t, obj.direction).elements;
+                            }
+                            x = this.elements[0] - C[0];
+                            y = this.elements[1] - C[1];
+                            z = this.elements[2] - C[2];
+                            return new Vector([C[0] + R[0][0] * x + R[0][1] * y + R[0][2] * z, C[1] + R[1][0] * x + R[1][1] * y + R[1][2] * z, C[2] + R[2][0] * x + R[2][1] * y + R[2][2] * z]);
+                            break;
+                        }
+                    default:
+                        {
+                            return null;
+                        }
+                }
+            }
+        }, {
+            key: "reflectionIn",
+            value: function reflectionIn(obj) {
+                if (obj.anchor) {
+                    // obj is a plane or line
+                    var P = this.elements.slice();
+                    var C = obj.pointClosestTo(P).elements;
+                    return new Vector([C[0] + (C[0] - P[0]), C[1] + (C[1] - P[1]), C[2] + (C[2] - (P[2] || 0))]);
+                } else {
+                    // obj is a point
+                    var Q = obj.elements || obj;
+                    if (this.elements.length !== Q.length) {
+                        return null;
+                    }
+                    return this.map(function (x, i) {
+                        return Q[i - 1] + (Q[i - 1] - x);
+                    });
+                }
+            }
+        }, {
+            key: "to3D",
+            value: function to3D() {
+                var V = this.dup();
+                switch (V.elements.length) {
+                    case 3:
+                        {
+                            break;
+                        }
+                    case 2:
+                        {
+                            V.elements.push(0);
+                            break;
+                        }
+                    default:
+                        {
+                            return null;
+                        }
+                }
+                return V;
+            }
+        }, {
+            key: "inspect",
+            value: function inspect() {
+                return '[' + this.elements.join(', ') + ']';
+            }
+        }, {
+            key: "setElements",
+            value: function setElements(els) {
+                this.elements = (els.elements || els).slice();
+                return this;
+            }
+
+            //From glUtils.js
+
+        }, {
+            key: "flatten",
+            value: function flatten() {
+                return this.elements;
+            }
+        }]);
+        return Vector;
+    }();
+
+    Vector.Random = function (n) {
+        var elements = [];
+        while (n--) {
+            elements.push(Math.random());
+        }
+        return new Vector(elements);
+    };
+
+    Vector.Zero = function (n) {
+        var elements = [];
+        while (n--) {
+            elements.push(0);
+        }
+        return new Vector(elements);
+    };
+
+    Vector.prototype.x = Vector.prototype.multiply;
+    Vector.prototype.each = Vector.prototype.forEach;
+
+    Vector.i = new Vector([1, 0, 0]);
+    Vector.j = new Vector([0, 1, 0]);
+    Vector.k = new Vector([0, 0, 1]);
+
     var computeCentroids = function computeCentroids(config, position, row) {
       var centroids = [];
 
@@ -9866,7 +11030,7 @@
         // centroids on 'real' axes
         var x = position(p[i]);
         var y = config.dimensions[p[i]].yscale(row[p[i]]);
-        centroids.push($V([x, y]));
+        centroids.push(new Vector([x, y]));
 
         // centroids on 'virtual' axes
         if (i < cols - 1) {
@@ -9878,7 +11042,7 @@
             var centroid = 0.5 * (leftCentroid + rightCentroid);
             cy = centroid + (1 - config.bundlingStrength) * (cy - centroid);
           }
-          centroids.push($V([cx, cy]));
+          centroids.push(new Vector([cx, cy]));
         }
       }
 
@@ -9891,7 +11055,7 @@
       var cps = [];
 
       cps.push(centroids[0]);
-      cps.push($V([centroids[0].e(1) + a * 2 * (centroids[1].e(1) - centroids[0].e(1)), centroids[0].e(2)]));
+      cps.push(new Vector([centroids[0].e(1) + a * 2 * (centroids[1].e(1) - centroids[0].e(1)), centroids[0].e(2)]));
       for (var col = 1; col < cols - 1; ++col) {
         var mid = centroids[col];
         var left = centroids[col - 1];
@@ -9902,7 +11066,8 @@
         cps.push(mid);
         cps.push(mid.subtract(diff.x(a)));
       }
-      cps.push($V([centroids[cols - 1].e(1) + a * 2 * (centroids[cols - 2].e(1) - centroids[cols - 1].e(1)), centroids[cols - 1].e(2)]));
+
+      cps.push(new Vector([centroids[cols - 1].e(1) + a * 2 * (centroids[cols - 2].e(1) - centroids[cols - 1].e(1)), centroids[cols - 1].e(2)]));
       cps.push(centroids[cols - 1]);
 
       return cps;
@@ -10317,7 +11482,7 @@
       };
     };
 
-    var version$1 = "2.2.1";
+    var version$1 = "2.2.7";
 
     var DefaultConfig = {
       data: [],
@@ -10463,7 +11628,7 @@
       return arr;
     };
 
-    var sideEffects = function sideEffects(config, ctx, pc, xscale, flags, brushedQueue, markedQueue, foregroundQueue) {
+    var sideEffects = function sideEffects(config, ctx, pc, xscale, axis, flags, brushedQueue, markedQueue, foregroundQueue) {
       return dispatch.apply(_this$5, Object.keys(config)).on('composite', function (d) {
         ctx.foreground.globalCompositeOperation = d.value;
         ctx.brushed.globalCompositeOperation = d.value;
@@ -10511,7 +11676,8 @@
         pc.dimensions(without(config.dimensions, d.value));
       }).on('flipAxes', function (d) {
         if (d.value && d.value.length) {
-          d.value.forEach(function (axis) {
+          d.value.forEach(function (dimension) {
+            flipAxisAndUpdatePCP(config, pc, axis)(dimension);
           });
           pc.updateAxes(0);
         }
@@ -10552,7 +11718,7 @@
     };
 
     var bindEvents = function bindEvents(__, ctx, pc, xscale, flags, brushedQueue, markedQueue, foregroundQueue, events, axis) {
-      var side_effects = sideEffects(__, ctx, pc, xscale, flags, brushedQueue, markedQueue, foregroundQueue);
+      var side_effects = sideEffects(__, ctx, pc, xscale, axis, flags, brushedQueue, markedQueue, foregroundQueue);
 
       // create getter/setters
       getset(pc, __, events, side_effects);
@@ -35864,7 +37030,7 @@
      * _.range(0);
      * // => []
      */
-    var range$1 = createRange();
+    var range$2 = createRange();
 
     /**
      * This method is like `_.range` except that it populates values in
@@ -36619,7 +37785,7 @@
      * @param {number} [end=array.length] The end position.
      * @returns {Array} Returns the slice of `array`.
      */
-    function slice$7(array, start, end) {
+    function slice$8(array, start, end) {
       var length = array == null ? 0 : array.length;
       if (!length) {
         return [];
@@ -39450,7 +40616,7 @@
       initial, intersection: intersection$1, intersectionBy, intersectionWith, join,
       last, lastIndexOf, nth, pull, pullAll,
       pullAllBy, pullAllWith, pullAt, remove: remove$1, reverse: reverse$1,
-      slice: slice$7, sortedIndex, sortedIndexBy, sortedIndexOf, sortedLastIndex,
+      slice: slice$8, sortedIndex, sortedIndexBy, sortedIndexOf, sortedLastIndex,
       sortedLastIndexBy, sortedLastIndexOf, sortedUniq, sortedUniqBy, tail,
       take, takeRight, takeRightWhile, takeWhile, union,
       unionBy, unionWith, uniq, uniqBy, uniqWith,
@@ -39538,7 +40704,7 @@
       defaultTo, flow, flowRight, identity: identity$9, iteratee,
       matches, matchesProperty, method, methodOf, mixin,
       noop: noop$4, nthArg, over, overEvery, overSome,
-      property, propertyOf, range: range$1, rangeRight, stubArray,
+      property, propertyOf, range: range$2, rangeRight, stubArray,
       stubFalse, stubObject, stubString, stubTrue, times,
       toPath, uniqueId
     };
@@ -41108,7 +42274,7 @@
        * @return {Matrix}
        */
       solve(value) {
-        value = Matrix.checkMatrix(value);
+        value = Matrix$1.checkMatrix(value);
 
         var lu = this.LU;
         var rows = lu.rows;
@@ -41170,7 +42336,7 @@
         var data = this.LU;
         var rows = data.rows;
         var columns = data.columns;
-        var X = new Matrix(rows, columns);
+        var X = new Matrix$1(rows, columns);
         for (var i = 0; i < rows; i++) {
           for (var j = 0; j < columns; j++) {
             if (i > j) {
@@ -41193,7 +42359,7 @@
         var data = this.LU;
         var rows = data.rows;
         var columns = data.columns;
-        var X = new Matrix(rows, columns);
+        var X = new Matrix$1(rows, columns);
         for (var i = 0; i < rows; i++) {
           for (var j = 0; j < columns; j++) {
             if (i <= j) {
@@ -41662,7 +42828,7 @@
         var Y = value;
         var e = this.threshold;
         var scols = this.s.length;
-        var Ls = Matrix.zeros(scols, scols);
+        var Ls = Matrix$1.zeros(scols, scols);
 
         for (let i = 0; i < scols; i++) {
           if (Math.abs(this.s[i]) <= e) {
@@ -41678,7 +42844,7 @@
         var VL = V.mmul(Ls);
         var vrows = V.rows;
         var urows = U.length;
-        var VLU = Matrix.zeros(vrows, urows);
+        var VLU = Matrix$1.zeros(vrows, urows);
 
         for (let i = 0; i < vrows; i++) {
           for (let j = 0; j < urows; j++) {
@@ -41699,7 +42865,7 @@
        * @return {Matrix}
        */
       solveForDiagonal(value) {
-        return this.solve(Matrix.diag(value));
+        return this.solve(Matrix$1.diag(value));
       }
 
       /**
@@ -41713,7 +42879,7 @@
         var e = this.threshold;
         var vrows = V.length;
         var vcols = V[0].length;
-        var X = new Matrix(vrows, this.s.length);
+        var X = new Matrix$1(vrows, this.s.length);
 
         for (let i = 0; i < vrows; i++) {
           for (let j = 0; j < vcols; j++) {
@@ -41729,7 +42895,7 @@
 
         var urows = U.length;
         var ucols = U[0].length;
-        var Y = new Matrix(vrows, urows);
+        var Y = new Matrix$1(vrows, urows);
 
         for (let i = 0; i < vrows; i++) {
           for (let j = 0; j < urows; j++) {
@@ -41797,8 +42963,8 @@
        * @return {Matrix}
        */
       get leftSingularVectors() {
-        if (!Matrix.isMatrix(this.U)) {
-          this.U = new Matrix(this.U);
+        if (!Matrix$1.isMatrix(this.U)) {
+          this.U = new Matrix$1(this.U);
         }
         return this.U;
       }
@@ -41808,8 +42974,8 @@
        * @return {Matrix}
        */
       get rightSingularVectors() {
-        if (!Matrix.isMatrix(this.V)) {
-          this.V = new Matrix(this.V);
+        if (!Matrix$1.isMatrix(this.V)) {
+          this.V = new Matrix$1(this.V);
         }
         return this.V;
       }
@@ -41819,7 +42985,7 @@
        * @return {Matrix}
        */
       get diagonalMatrix() {
-        return Matrix.diag(this.s);
+        return Matrix$1.diag(this.s);
       }
     }
 
@@ -41956,7 +43122,7 @@
     }
 
     function sumByRow(matrix) {
-      var sum = Matrix.zeros(matrix.rows, 1);
+      var sum = Matrix$1.zeros(matrix.rows, 1);
       for (var i = 0; i < matrix.rows; ++i) {
         for (var j = 0; j < matrix.columns; ++j) {
           sum.set(i, 0, sum.get(i, 0) + matrix.get(i, j));
@@ -41966,7 +43132,7 @@
     }
 
     function sumByColumn(matrix) {
-      var sum = Matrix.zeros(1, matrix.columns);
+      var sum = Matrix$1.zeros(1, matrix.columns);
       for (var i = 0; i < matrix.rows; ++i) {
         for (var j = 0; j < matrix.columns; ++j) {
           sum.set(0, j, sum.get(0, j) + matrix.get(i, j));
@@ -42000,7 +43166,7 @@
       }
 
       static get [Symbol.species]() {
-        return Matrix;
+        return Matrix$1;
       }
     }
 
@@ -44015,13 +45181,13 @@
       return Matrix;
     }
 
-    class Matrix extends AbstractMatrix(Array) {
+    class Matrix$1 extends AbstractMatrix(Array) {
       constructor(nRows, nColumns) {
         var i;
         if (arguments.length === 1 && typeof nRows === 'number') {
           return new Array(nRows);
         }
-        if (Matrix.isMatrix(nRows)) {
+        if (Matrix$1.isMatrix(nRows)) {
           return nRows.clone();
         } else if (Number.isInteger(nRows) && nRows > 0) {
           // Create an empty matrix
@@ -44175,7 +45341,7 @@
       }
 
       static get [Symbol.species]() {
-        return Matrix;
+        return Matrix$1;
       }
     }
 
@@ -44201,7 +45367,7 @@
       }
 
       static get [Symbol.species]() {
-        return Matrix;
+        return Matrix$1;
       }
     }
 
@@ -44281,7 +45447,7 @@
 
     // Implementation inspired from scikit
     function kmeanspp(X, K, options = {}) {
-      X = new Matrix(X);
+      X = new Matrix$1(X);
       const nSamples = X.length;
       const random = new Random(options.seed);
       // Set the number of trials
@@ -44296,7 +45462,7 @@
       let closestDistSquared = [X.map((x) => squaredEuclidean(x, centers[0]))];
       let cumSumClosestDistSquared = [cumSum(closestDistSquared[0])];
       const factor = 1 / cumSumClosestDistSquared[0][nSamples - 1];
-      let probabilities = Matrix.mul(closestDistSquared, factor);
+      let probabilities = Matrix$1.mul(closestDistSquared, factor);
 
       // Iterate over the remaining centers
       for (let i = 1; i < K; i++) {
@@ -44306,7 +45472,7 @@
           probabilities: probabilities[0]
         });
 
-        const candidates = X.selection(candidateIdx, range$2(X[0].length));
+        const candidates = X.selection(candidateIdx, range$3(X[0].length));
         const distanceToCandidates = euclidianDistances(candidates, X);
 
         let bestCandidate;
@@ -44314,7 +45480,7 @@
         let bestDistSquared;
 
         for (let j = 0; j < localTrials; j++) {
-          const newDistSquared = Matrix.min(closestDistSquared, [distanceToCandidates[j]]);
+          const newDistSquared = Matrix$1.min(closestDistSquared, [distanceToCandidates[j]]);
           const newPot = newDistSquared.sum();
           if (bestCandidate === undefined || newPot < bestPot) {
             bestCandidate = candidateIdx[j];
@@ -44325,7 +45491,7 @@
         centers[i] = X[bestCandidate].slice();
         closestDistSquared = bestDistSquared;
         cumSumClosestDistSquared = [cumSum(closestDistSquared[0])];
-        probabilities = Matrix.mul(
+        probabilities = Matrix$1.mul(
           closestDistSquared,
           1 / cumSumClosestDistSquared[0][nSamples - 1]
         );
@@ -44334,7 +45500,7 @@
     }
 
     function euclidianDistances(A, B) {
-      const result = new Matrix(A.length, B.length);
+      const result = new Matrix$1(A.length, B.length);
       for (let i = 0; i < A.length; i++) {
         for (let j = 0; j < B.length; j++) {
           result.set(i, j, squaredEuclidean(A.getRow(i), B.getRow(j)));
@@ -44343,7 +45509,7 @@
       return result;
     }
 
-    function range$2(l) {
+    function range$3(l) {
       let r = [];
       for (let i = 0; i < l; i++) {
         r.push(i);
@@ -44743,8 +45909,6 @@
           palette = function palette(d) {
             return scheme$$1(Number(d['cluster']));
           };
-        } else {
-          palette = palette;
         }
 
         var data = [];
@@ -44846,7 +46010,7 @@
      * @param {array} displayIDs: charts that will display 'weighted sum' variable; defaults to all charts
      * @param {bool} norm: normalize values (0-1) to obtain fair weighting
      */
-    var weightedSums = function weightedSums(config, ps, flags) {
+    var weightedSum = function weightedSum(config, ps, flags) {
       return function (_ref) {
         var weights = _ref.weights,
             _ref$displayIDs = _ref.displayIDs,
@@ -44901,7 +46065,6 @@
 
         // weighted sums are ready, update data and charts
         config.vars.push('weighted sum');
-        console.log(config.vars);
         config.data = format_data(config.data);
         ps.charts.forEach(function (pc, i) {
           pc.data(config.data).hideAxis(config.partition[i]).render().createAxes();
@@ -45053,8 +46216,6 @@
      */
     var keepData = function keepData(config, ps, flags) {
       return function (data) {
-        console.log('before:', config.data.length);
-
         // identify data
         var d = [];
         if (data == 'brushed') {
@@ -45066,7 +46227,6 @@
         } else {
           throw "Please specify one of {'brushed', 'marked', 'both'}";
         }
-        console.log(d);
 
         if (d.length > 0) {
           // reset selections and update config
@@ -45085,7 +46245,6 @@
           throw 'Error: No data selected.';
         }
 
-        console.log('after:', config.data.length);
         return this;
       };
     };
@@ -45099,8 +46258,6 @@
      */
     var removeData = function removeData(config, ps, flags) {
       return function (data) {
-        console.log('before:', config.data.length);
-
         // identify data
         var d = [];
         if (data == 'brushed') {
@@ -45113,7 +46270,6 @@
           throw "Please specify one of {'brushed', 'marked', 'both'}";
         }
         d = difference(config.data, d);
-        console.log(d);
 
         if (d.length > 0 && d.length < config.data.length) {
           // reset selections and update config
@@ -45132,7 +46288,6 @@
           throw 'Error: No data selected.';
         }
 
-        console.log('after:', config.data.length);
         return this;
       };
     };
@@ -45481,7 +46636,25 @@
       };
     };
 
-    // parcoords wrapper: format dimensions (applies to all charts)
+    // parcoords wrapper: mark a data element
+    var mark$1 = function mark(config, ps, flags) {
+      return function (d) {
+        ps.charts.forEach(function (pc) {
+          return pc.mark(d);
+        });
+      };
+    };
+
+    // parcoords wrapper: highlight a data element
+    var highlight$1 = function highlight(config, ps, flags) {
+      return function (d) {
+        ps.charts.forEach(function (pc) {
+          return pc.highlight(d);
+        });
+      };
+    };
+
+    // parcoords wrapper: format dimensions 
     var dimensions = function dimensions(config, ps, flags) {
       return function (d) {
         ps.charts.forEach(function (pc) {
@@ -45510,7 +46683,7 @@
             return pc.scale(axis, domain);
           });
         } else {
-          throw Error('Domain Error: specified domain must be exceed axis extrema.');
+          throw Error('Domain Error: specified domain must exceed axis extrema.');
         }
         return this;
       };
@@ -45562,8 +46735,6 @@
         ps.charts.forEach(function (pc) {
           return pc.brushReset();
         });
-
-        // NOTE: if charts are linked and at least one is not reset, then none will be reset
 
         // NOTE: brushed data in config is updated by sync() as consequence of pc.brushReset()
         // currently need to force due to issue with ParCoords.selected() returning entire dataset if brush extents are empty
@@ -45656,7 +46827,7 @@
       };
     };
 
-    var version$2 = "0.0.0";
+    var version$2 = "1.0.0";
 
     //css
 
@@ -45682,7 +46853,7 @@
       ps.gridUpdate = gridUpdate(config, ps, flags);
       ps.linked = linked(config, ps, flags);
       ps.cluster = cluster$1(config, ps, flags);
-      ps.weightedSums = weightedSums(config, ps, flags);
+      ps.weightedSum = weightedSum(config, ps, flags);
       ps.hideAxes = hideAxes(config, ps, flags);
       ps.showAxes = showAxes(config, ps, flags);
       ps.setAxesLayout = setAxesLayout(config, ps, flags);
@@ -45691,7 +46862,7 @@
       ps.exportData = exportData(config, ps, flags);
       ps.resetSelections = resetSelections(config, ps, flags);
 
-      // parcoords methods (global)
+      // parcoords methods (apply to all charts)
       ps.alpha = alpha(config, ps, flags);
       ps.color = color$1(config, ps, flags);
       ps.alphaOnBrushed = alphaOnBrushed(config, ps, flags);
@@ -45699,8 +46870,8 @@
       ps.reorderable = reorderable$1(config, ps, flags);
       ps.composite = composite(config, ps, flags);
       ps.shadows = shadows$1(config, ps, flags);
-      // ps.mark = mark(config, ps, flags);
-      // ps.highlight = highlight(config, ps, flags);
+      ps.mark = mark$1(config, ps, flags);
+      ps.highlight = highlight$1(config, ps, flags);
       ps.dimensions = dimensions(config, ps, flags);
       ps.scale = scale$1(config, ps, flags);
       ps.flipAxes = flipAxes(config, ps, flags);

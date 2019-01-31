@@ -9,7 +9,7 @@
 <link rel="stylesheet" type="text/css" href="parasol.css">
 
 <script src="./lib/d3.v5.min.js"></script>
-<script src="../dist/parasol.standalone.js"></script>
+<script src="./parasol.standalone.js"></script>
 
 <body>
 <p>Prototype for connected chart and grid activity.</p>
@@ -18,8 +18,8 @@
     <button id="grid_update">Grid Update</button>
 </p>
 
-<div id="plot01" class="parcoords" style="height:200px; width:800px;"></div>
-<div id="plot02" class="parcoords" style="height:200px; width:800px;"></div>
+<div id="p0" class="parcoords" style="height:200px; width:800px;"></div>
+<div id="p1" class="parcoords" style="height:200px; width:800px;"></div>
 <div id="grid" style="width:100%;height:500px;" class="slickgrid-container"></div>
 </body>
 
@@ -32,18 +32,13 @@ d3.csv('data/cars.csv').then(function(data) {
             .linked();
 
   // update charts
-  // ps.charts.forEach(
-  //   (pc) => {
-  //     pc
-  //       .hideAxis(['name'])
-  //       .render()
-  //       .updateAxes(0)
-  //   }
-  // )
+  ps
+    .hideAxes(['name'])
+    .reorderable()
+    .render();
 
   d3.select('#reset_brushes').on('click', function() {
-    // reset first two plots
-    ps.globalBrushReset([0,1])
+    ps.brushReset()
   });
 
 });

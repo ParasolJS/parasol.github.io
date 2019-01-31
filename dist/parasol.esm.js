@@ -506,8 +506,6 @@ var cluster = function cluster(config, ps, flags) {
       palette = function palette(d) {
         return scheme(Number(d['cluster']));
       };
-    } else {
-      palette = palette;
     }
 
     var data = [];
@@ -609,7 +607,7 @@ var normalize = function normalize(data) {
  * @param {array} displayIDs: charts that will display 'weighted sum' variable; defaults to all charts
  * @param {bool} norm: normalize values (0-1) to obtain fair weighting
  */
-var weightedSums = function weightedSums(config, ps, flags) {
+var weightedSum = function weightedSum(config, ps, flags) {
   return function (_ref) {
     var weights = _ref.weights,
         _ref$displayIDs = _ref.displayIDs,
@@ -664,7 +662,6 @@ var weightedSums = function weightedSums(config, ps, flags) {
 
     // weighted sums are ready, update data and charts
     config.vars.push('weighted sum');
-    console.log(config.vars);
     config.data = format_data(config.data);
     ps.charts.forEach(function (pc, i) {
       pc.data(config.data).hideAxis(config.partition[i]).render().createAxes();
@@ -816,8 +813,6 @@ var setAxesLayout = function setAxesLayout(config, ps, flags) {
  */
 var keepData = function keepData(config, ps, flags) {
   return function (data) {
-    console.log('before:', config.data.length);
-
     // identify data
     var d = [];
     if (data == 'brushed') {
@@ -829,7 +824,6 @@ var keepData = function keepData(config, ps, flags) {
     } else {
       throw "Please specify one of {'brushed', 'marked', 'both'}";
     }
-    console.log(d);
 
     if (d.length > 0) {
       // reset selections and update config
@@ -848,7 +842,6 @@ var keepData = function keepData(config, ps, flags) {
       throw 'Error: No data selected.';
     }
 
-    console.log('after:', config.data.length);
     return this;
   };
 };
@@ -862,8 +855,6 @@ var keepData = function keepData(config, ps, flags) {
  */
 var removeData = function removeData(config, ps, flags) {
   return function (data) {
-    console.log('before:', config.data.length);
-
     // identify data
     var d = [];
     if (data == 'brushed') {
@@ -876,7 +867,6 @@ var removeData = function removeData(config, ps, flags) {
       throw "Please specify one of {'brushed', 'marked', 'both'}";
     }
     d = difference(config.data, d);
-    console.log(d);
 
     if (d.length > 0 && d.length < config.data.length) {
       // reset selections and update config
@@ -895,7 +885,6 @@ var removeData = function removeData(config, ps, flags) {
       throw 'Error: No data selected.';
     }
 
-    console.log('after:', config.data.length);
     return this;
   };
 };
@@ -1242,7 +1231,25 @@ var shadows = function shadows(config, ps, flags) {
   };
 };
 
-// parcoords wrapper: format dimensions (applies to all charts)
+// parcoords wrapper: mark a data element
+var mark = function mark(config, ps, flags) {
+  return function (d) {
+    ps.charts.forEach(function (pc) {
+      return pc.mark(d);
+    });
+  };
+};
+
+// parcoords wrapper: highlight a data element
+var highlight = function highlight(config, ps, flags) {
+  return function (d) {
+    ps.charts.forEach(function (pc) {
+      return pc.highlight(d);
+    });
+  };
+};
+
+// parcoords wrapper: format dimensions 
 var dimensions = function dimensions(config, ps, flags) {
   return function (d) {
     ps.charts.forEach(function (pc) {
@@ -1271,7 +1278,7 @@ var scale = function scale(config, ps, flags) {
         return pc.scale(axis, domain);
       });
     } else {
-      throw Error('Domain Error: specified domain must be exceed axis extrema.');
+      throw Error('Domain Error: specified domain must exceed axis extrema.');
     }
     return this;
   };
@@ -1323,8 +1330,6 @@ var brushReset = function brushReset(config, ps, flags) {
     ps.charts.forEach(function (pc) {
       return pc.brushReset();
     });
-
-    // NOTE: if charts are linked and at least one is not reset, then none will be reset
 
     // NOTE: brushed data in config is updated by sync() as consequence of pc.brushReset()
     // currently need to force due to issue with ParCoords.selected() returning entire dataset if brush extents are empty
@@ -1417,7 +1422,7 @@ var initState = function initState(data, userConfig) {
   };
 };
 
-var version = "0.0.0";
+var version = "1.0.0";
 
 //css
 
@@ -1443,7 +1448,7 @@ var Parasol = function Parasol(data, userConfig) {
   ps.gridUpdate = gridUpdate(config, ps, flags);
   ps.linked = linked(config, ps, flags);
   ps.cluster = cluster(config, ps, flags);
-  ps.weightedSums = weightedSums(config, ps, flags);
+  ps.weightedSum = weightedSum(config, ps, flags);
   ps.hideAxes = hideAxes(config, ps, flags);
   ps.showAxes = showAxes(config, ps, flags);
   ps.setAxesLayout = setAxesLayout(config, ps, flags);
@@ -1452,7 +1457,7 @@ var Parasol = function Parasol(data, userConfig) {
   ps.exportData = exportData(config, ps, flags);
   ps.resetSelections = resetSelections(config, ps, flags);
 
-  // parcoords methods (global)
+  // parcoords methods (apply to all charts)
   ps.alpha = alpha(config, ps, flags);
   ps.color = color(config, ps, flags);
   ps.alphaOnBrushed = alphaOnBrushed(config, ps, flags);
@@ -1460,8 +1465,8 @@ var Parasol = function Parasol(data, userConfig) {
   ps.reorderable = reorderable(config, ps, flags);
   ps.composite = composite(config, ps, flags);
   ps.shadows = shadows(config, ps, flags);
-  // ps.mark = mark(config, ps, flags);
-  // ps.highlight = highlight(config, ps, flags);
+  ps.mark = mark(config, ps, flags);
+  ps.highlight = highlight(config, ps, flags);
   ps.dimensions = dimensions(config, ps, flags);
   ps.scale = scale(config, ps, flags);
   ps.flipAxes = flipAxes(config, ps, flags);
