@@ -7585,7 +7585,9 @@
           config.brushed = false;
           if (pc.g() !== undefined && pc.g() !== null) {
             pc.g().selectAll('.brush').each(function (d) {
-              select(this).call(brushes[d].move, null);
+              if (brushes[d] !== undefined) {
+                select(this).call(brushes[d].move, null);
+              }
             });
             pc.renderBrushed();
           }
@@ -46654,7 +46656,7 @@
       };
     };
 
-    // parcoords wrapper: format dimensions 
+    // parcoords wrapper: format dimensions
     var dimensions = function dimensions(config, ps, flags) {
       return function (d) {
         ps.charts.forEach(function (pc) {
