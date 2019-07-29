@@ -82,7 +82,7 @@
       return [min, max];
     }
 
-    function range(start, stop, step) {
+    function sequence(start, stop, step) {
       start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
 
       var i = -1,
@@ -5160,7 +5160,7 @@
         start += (stop - start - step * (n - paddingInner)) * align;
         bandwidth = step * (1 - paddingInner);
         if (round) start = Math.round(start), bandwidth = Math.round(bandwidth);
-        var values = range(n).map(function(i) { return start + step * i; });
+        var values = sequence(n).map(function(i) { return start + step * i; });
         return ordinalRange(reverse ? values.reverse() : values);
       }
 
@@ -5267,15 +5267,15 @@
       };
     }
 
-    function bimap(domain, range$$1, deinterpolate, reinterpolate) {
-      var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
+    function bimap(domain, range, deinterpolate, reinterpolate) {
+      var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
       if (d1 < d0) d0 = deinterpolate(d1, d0), r0 = reinterpolate(r1, r0);
       else d0 = deinterpolate(d0, d1), r0 = reinterpolate(r0, r1);
       return function(x) { return r0(d0(x)); };
     }
 
-    function polymap(domain, range$$1, deinterpolate, reinterpolate) {
-      var j = Math.min(domain.length, range$$1.length) - 1,
+    function polymap(domain, range, deinterpolate, reinterpolate) {
+      var j = Math.min(domain.length, range.length) - 1,
           d = new Array(j),
           r = new Array(j),
           i = -1;
@@ -5283,12 +5283,12 @@
       // Reverse descending domains.
       if (domain[j] < domain[0]) {
         domain = domain.slice().reverse();
-        range$$1 = range$$1.slice().reverse();
+        range = range.slice().reverse();
       }
 
       while (++i < j) {
         d[i] = deinterpolate(domain[i], domain[i + 1]);
-        r[i] = reinterpolate(range$$1[i], range$$1[i + 1]);
+        r[i] = reinterpolate(range[i], range[i + 1]);
       }
 
       return function(x) {
@@ -5309,7 +5309,7 @@
     // reinterpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding domain value x in [a,b].
     function continuous(deinterpolate, reinterpolate) {
       var domain = unit,
-          range$$1 = unit,
+          range = unit,
           interpolate$$1 = interpolateValue,
           clamp = false,
           piecewise$$1,
@@ -5317,17 +5317,17 @@
           input;
 
       function rescale() {
-        piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
+        piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
         output = input = null;
         return scale;
       }
 
       function scale(x) {
-        return (output || (output = piecewise$$1(domain, range$$1, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
+        return (output || (output = piecewise$$1(domain, range, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
       }
 
       scale.invert = function(y) {
-        return (input || (input = piecewise$$1(range$$1, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
+        return (input || (input = piecewise$$1(range, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
       };
 
       scale.domain = function(_) {
@@ -5335,11 +5335,11 @@
       };
 
       scale.range = function(_) {
-        return arguments.length ? (range$$1 = slice$6.call(_), rescale()) : range$$1.slice();
+        return arguments.length ? (range = slice$6.call(_), rescale()) : range.slice();
       };
 
       scale.rangeRound = function(_) {
-        return range$$1 = slice$6.call(_), interpolate$$1 = interpolateRound, rescale();
+        return range = slice$6.call(_), interpolate$$1 = interpolateRound, rescale();
       };
 
       scale.clamp = function(_) {
@@ -5556,7 +5556,6 @@
         return (end - start) / k;
       });
     };
-    var milliseconds = millisecond.range;
 
     var durationSecond = 1e3;
     var durationMinute = 6e4;
@@ -5573,7 +5572,6 @@
     }, function(date) {
       return date.getUTCSeconds();
     });
-    var seconds = second.range;
 
     var minute = newInterval(function(date) {
       date.setTime(Math.floor(date / durationMinute) * durationMinute);
@@ -5584,7 +5582,6 @@
     }, function(date) {
       return date.getMinutes();
     });
-    var minutes = minute.range;
 
     var hour = newInterval(function(date) {
       var offset = date.getTimezoneOffset() * durationMinute % durationHour;
@@ -5597,7 +5594,6 @@
     }, function(date) {
       return date.getHours();
     });
-    var hours = hour.range;
 
     var day = newInterval(function(date) {
       date.setHours(0, 0, 0, 0);
@@ -5608,7 +5604,6 @@
     }, function(date) {
       return date.getDate() - 1;
     });
-    var days = day.range;
 
     function weekday(i) {
       return newInterval(function(date) {
@@ -5643,7 +5638,6 @@
     }, function(date) {
       return date.getMonth();
     });
-    var months = month.range;
 
     var year = newInterval(function(date) {
       date.setMonth(0, 1);
@@ -5666,7 +5660,6 @@
         date.setFullYear(date.getFullYear() + step * k);
       });
     };
-    var years = year.range;
 
     var utcMinute = newInterval(function(date) {
       date.setUTCSeconds(0, 0);
@@ -5677,7 +5670,6 @@
     }, function(date) {
       return date.getUTCMinutes();
     });
-    var utcMinutes = utcMinute.range;
 
     var utcHour = newInterval(function(date) {
       date.setUTCMinutes(0, 0, 0);
@@ -5688,7 +5680,6 @@
     }, function(date) {
       return date.getUTCHours();
     });
-    var utcHours = utcHour.range;
 
     var utcDay = newInterval(function(date) {
       date.setUTCHours(0, 0, 0, 0);
@@ -5699,7 +5690,6 @@
     }, function(date) {
       return date.getUTCDate() - 1;
     });
-    var utcDays = utcDay.range;
 
     function utcWeekday(i) {
       return newInterval(function(date) {
@@ -5734,7 +5724,6 @@
     }, function(date) {
       return date.getUTCMonth();
     });
-    var utcMonths = utcMonth.range;
 
     var utcYear = newInterval(function(date) {
       date.setUTCMonth(0, 1);
@@ -5757,7 +5746,6 @@
         date.setUTCFullYear(date.getUTCFullYear() + step * k);
       });
     };
-    var utcYears = utcYear.range;
 
     function localDate(d) {
       if (0 <= d.y && d.y < 100) {
@@ -7488,9 +7476,9 @@
         return [];
       }
       var domain = scale.domain();
-      var range$$1 = scale.range();
+      var range = scale.range();
       var found = [];
-      range$$1.forEach(function (d, i) {
+      range.forEach(function (d, i) {
         if (d >= selection$$1[0] && d <= selection$$1[1]) {
           found.push(domain[i]);
         }
@@ -7826,7 +7814,7 @@
         for (var i = 0; i < axisBrushes.length; i++) {
           var brush$$1 = document.getElementById('brush-' + pos + '-' + i);
 
-          if (brushSelection(brush$$1) !== null) {
+          if (brush$$1 && brushSelection(brush$$1) !== null) {
             return true;
           }
         }
@@ -7838,7 +7826,9 @@
       var extents = actives.map(function (p) {
         var axisBrushes = brushes[p];
 
-        return axisBrushes.map(function (d, i) {
+        return axisBrushes.filter(function (d) {
+          return !pc.hideAxis().includes(d);
+        }).map(function (d, i) {
           return brushSelection(document.getElementById('brush-' + Object.keys(config.dimensions).indexOf(p) + '-' + i));
         }).map(function (d, i) {
           if (d === null || d === undefined) {
@@ -8143,20 +8133,32 @@
       return function (extents) {
         var brushes = state.brushes;
 
+        var hiddenAxes = pc.hideAxis();
 
         if (typeof extents === 'undefined') {
-          return Object.keys(config.dimensions).reduce(function (acc, cur, pos) {
+          return Object.keys(config.dimensions).filter(function (d) {
+            return !hiddenAxes.includes(d);
+          }).reduce(function (acc, cur, pos) {
             var axisBrushes = brushes[cur];
 
             if (axisBrushes === undefined || axisBrushes === null) {
               acc[cur] = [];
             } else {
               acc[cur] = axisBrushes.reduce(function (d, p, i) {
-                var range$$1 = brushSelection(document.getElementById('brush-' + pos + '-' + i));
-                if (range$$1 !== null) {
-                  d = d.push(range$$1);
-                }
+                var raw = brushSelection(document.getElementById('brush-' + pos + '-' + i));
 
+                if (raw) {
+                  var yScale = config.dimensions[cur].yscale;
+                  var scaled = invertByScale(raw, yScale);
+
+                  d.push({
+                    extent: p.brush.extent(),
+                    selection: {
+                      raw: raw,
+                      scaled: scaled
+                    }
+                  });
+                }
                 return d;
               }, []);
             }
@@ -8222,12 +8224,15 @@
             Object.keys(config.dimensions).forEach(function (d, pos) {
               var axisBrush = brushes[d];
 
-              axisBrush.forEach(function (e, i) {
-                var brush$$1 = document.getElementById('brush-' + pos + '-' + i);
-                if (brushSelection(brush$$1) !== null) {
-                  pc.g().select('#brush-' + pos + '-' + i).call(e.brush.move, null);
-                }
-              });
+              // hidden axes will be undefined
+              if (axisBrush) {
+                axisBrush.forEach(function (e, i) {
+                  var brush$$1 = document.getElementById('brush-' + pos + '-' + i);
+                  if (brush$$1 && brushSelection(brush$$1) !== null) {
+                    pc.g().select('#brush-' + pos + '-' + i).call(e.brush.move, null);
+                  }
+                });
+              }
             });
 
             pc.renderBrushed();
@@ -8237,16 +8242,18 @@
             var axisBrush = brushes[dimension];
             var pos = Object.keys(config.dimensions).indexOf(dimension);
 
-            axisBrush.forEach(function (e, i) {
-              var brush$$1 = document.getElementById('brush-' + pos + '-' + i);
-              if (brushSelection(brush$$1) !== null) {
-                pc.g().select('#brush-' + pos + '-' + i).call(e.brush.move, null);
+            if (axisBrush) {
+              axisBrush.forEach(function (e, i) {
+                var brush$$1 = document.getElementById('brush-' + pos + '-' + i);
+                if (brushSelection(brush$$1) !== null) {
+                  pc.g().select('#brush-' + pos + '-' + i).call(e.brush.move, null);
 
-                if (typeof e.event === 'function') {
-                  e.event(select('#brush-' + pos + '-' + i));
+                  if (typeof e.event === 'function') {
+                    e.event(select('#brush-' + pos + '-' + i));
+                  }
                 }
-              }
-            });
+              });
+            }
 
             pc.renderBrushed();
           }
@@ -8270,12 +8277,16 @@
           pc.createAxes();
         }
 
+        var hiddenAxes = pc.hideAxis();
+
         pc.g().append('svg:g').attr('id', function (d, i) {
           return 'brush-group-' + i;
         }).attr('class', 'brush-group').attr('dimension', function (d) {
           return d;
         }).each(function (d) {
-          brushFor$1(state, config, pc, events, brushGroup)(d, select(this));
+          if (!hiddenAxes.includes(d)) {
+            brushFor$1(state, config, pc, events, brushGroup)(d, select(this));
+          }
         });
 
         pc.brushExtents = brushExtents$1(state, config, pc, events, brushGroup);
@@ -9596,11 +9607,11 @@
       };
     };
 
-    var computeRealCentroids = function computeRealCentroids(dimensions, position) {
+    var computeRealCentroids = function computeRealCentroids(config, position) {
       return function (row) {
-        return Object.keys(dimensions).map(function (d) {
+        return Object.keys(config.dimensions).map(function (d) {
           var x = position(d);
-          var y = dimensions[d].yscale(row[d]);
+          var y = config.dimensions[d].yscale(row[d]);
           return [x, y];
         });
       };
@@ -11210,7 +11221,7 @@
       };
     };
 
-    var brushReset$4 = function brushReset(config) {
+    var brushReset$4 = function brushReset(config, pc) {
       return function (dimension) {
         var brushesToKeep = [];
         for (var j = 0; j < config.brushes.length; j++) {
@@ -11484,7 +11495,7 @@
       };
     };
 
-    var version$1 = "2.2.7";
+    var version$1 = "2.2.10";
 
     var DefaultConfig = {
       data: [],
@@ -11674,8 +11685,10 @@
           pc.render();
         }
       }).on('hideAxis', function (d) {
+        pc.brushReset();
         pc.dimensions(pc.applyDimensionDefaults());
         pc.dimensions(without(config.dimensions, d.value));
+        pc.render();
       }).on('flipAxes', function (d) {
         if (d.value && d.value.length) {
           d.value.forEach(function (dimension) {
@@ -11796,7 +11809,7 @@
       pc.renderMarked.default = renderMarkedDefault(config, pc, ctx, position);
       pc.renderMarked.queue = renderMarkedQueue(config, markedQueue);
 
-      pc.compute_real_centroids = computeRealCentroids(config.dimensions, position);
+      pc.compute_real_centroids = computeRealCentroids(config, position);
       pc.shadows = shadows(flags, pc);
       pc.axisDots = axisDots(config, pc, position);
       pc.clear = clear(config, pc, ctx, brush$$1);
@@ -11805,7 +11818,7 @@
       pc.updateAxes = updateAxes(config, pc, position, axis, flags);
       pc.applyAxisConfig = applyAxisConfig;
       pc.brushable = brushable(config, pc, flags);
-      pc.brushReset = brushReset$4(config);
+      pc.brushReset = brushReset$4(config, pc);
       pc.selected = selected$4(config, pc);
       pc.reorderable = reorderable(config, pc, xscale, position, dragging, flags);
 
@@ -27925,7 +27938,7 @@
     }
 
     /** Used to detect strings that need a more robust regexp to match words. */
-    var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2,}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
+    var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
 
     /**
      * Checks if `string` contains a word composed of Unicode symbols.
@@ -30879,9 +30892,11 @@
      * @returns {*} Returns the property value.
      */
     function safeGet(object, key) {
-      return key == '__proto__'
-        ? undefined
-        : object[key];
+      if (key == '__proto__') {
+        return;
+      }
+
+      return object[key];
     }
 
     /**
@@ -30972,7 +30987,7 @@
           if (isArguments(objValue)) {
             newValue = toPlainObject(objValue);
           }
-          else if (!isObject(objValue) || (srcIndex && isFunction(objValue))) {
+          else if (!isObject(objValue) || isFunction(objValue)) {
             newValue = initCloneObject(srcValue);
           }
         }
@@ -37032,7 +37047,7 @@
      * _.range(0);
      * // => []
      */
-    var range$2 = createRange();
+    var range$1 = createRange();
 
     /**
      * This method is like `_.range` except that it populates values in
@@ -40706,7 +40721,7 @@
       defaultTo, flow, flowRight, identity: identity$9, iteratee,
       matches, matchesProperty, method, methodOf, mixin,
       noop: noop$4, nthArg, over, overEvery, overSome,
-      property, propertyOf, range: range$2, rangeRight, stubArray,
+      property, propertyOf, range: range$1, rangeRight, stubArray,
       stubFalse, stubObject, stubString, stubTrue, times,
       toPath, uniqueId
     };
@@ -40857,7 +40872,7 @@
      */
 
     /** Used as the semantic version number. */
-    var VERSION = '4.17.10';
+    var VERSION = '4.17.11';
 
     /** Used to compose bitmasks for function metadata. */
     var WRAP_BIND_KEY_FLAG$6 = 2;
@@ -45474,7 +45489,7 @@
           probabilities: probabilities[0]
         });
 
-        const candidates = X.selection(candidateIdx, range$3(X[0].length));
+        const candidates = X.selection(candidateIdx, range$2(X[0].length));
         const distanceToCandidates = euclidianDistances(candidates, X);
 
         let bestCandidate;
@@ -45511,7 +45526,7 @@
       return result;
     }
 
-    function range$3(l) {
+    function range$2(l) {
       let r = [];
       for (let i = 0; i < l; i++) {
         r.push(i);
@@ -46656,7 +46671,7 @@
       };
     };
 
-    // parcoords wrapper: format dimensions
+    // parcoords wrapper: format dimensions 
     var dimensions = function dimensions(config, ps, flags) {
       return function (d) {
         ps.charts.forEach(function (pc) {
@@ -46829,7 +46844,7 @@
       };
     };
 
-    var version$2 = "1.0.0";
+    var version$2 = "1.0.1";
 
     //css
 
